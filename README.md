@@ -14,19 +14,19 @@ The Docker image will automatically download and build the latest version of `lg
 ---
 
 1. **Clone this repository:**
-   ```sh
+```sh
    git clone https://github.com/scotb/gog-sync.git
    cd gog-sync
-   ```
+```
 
 2. **Edit paths as needed:**
    - Update any hardcoded paths in the scripts (e.g., `C:\gog-archive`, `~/gog-archive`) to match your system.
    - Ensure your `docker-compose.yaml` volume mappings match your desired download and config locations.
 
 3. **Build the Docker image (if needed):**
-   ```sh
+```sh
    docker-compose build
-   ```
+```
 
 ## Authentication & Credentials
 
@@ -36,35 +36,35 @@ Before you can download or update your games, you must log in to your GOG accoun
 
 - The credentials and configuration are stored in the file mapped by the `volumes` section of your `docker-compose.yaml` file:
    - Example:
-      ```yaml
+   ```yaml
       - C:/Users/youruser/.config/lgogdownloader:/root/.config/lgogdownloader
-      ```
+   ```
    - This ensures your login session and settings persist across container runs and are not lost when the container is removed.
 
 
 **To log in (PowerShell):**
 
 1. Run your sync script with the `-Tty` flag to ensure you get an interactive login prompt. For example:
-   ```powershell
+```powershell
    ./gog-sync.ps1 -Tty -Download
-   ```
+```
    or, for repair:
-   ```powershell
+```powershell
    ./gog-sync.ps1 -Tty -Download -Repair
-   ```
+```
 2. If you are not already logged in, `lgogdownloader` will prompt you for your GOG credentials and any required two-factor authentication.
 3. Your credentials will be saved in the mapped config file for future runs.
 
 **To log in (Bash/Linux):**
 
 1. Run your sync script with the `--tty` flag to ensure you get an interactive login prompt. For example:
-   ```bash
+```bash
    ./gog-sync.sh --tty --download
-   ```
+```
    or, for repair:
-   ```bash
+```bash
    ./gog-sync.sh --tty --download --repair
-   ```
+```
 2. If you are not already logged in, `lgogdownloader` will prompt you for your GOG credentials and any required two-factor authentication.
 3. Your credentials will be saved in the mapped config file for future runs.
 
@@ -76,8 +76,6 @@ Before you can download or update your games, you must log in to your GOG accoun
 
 Run from the project directory:
 
-
-```powershell
 
 ```powershell
 # Quick update check - lists games with updates available
