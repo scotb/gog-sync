@@ -99,17 +99,31 @@ echo "Running command: docker-compose run --rm $TTY_FLAG gogrepo $LGOG_COMMAND"
 echo "Running command: docker-compose run --rm $TTY_FLAG gogrepo $LGOG_COMMAND" >> "$log_file"
 
 if [[ "$LGOG_COMMAND" == *"--list"* ]]; then
-    # Always show all output when listing
-    docker-compose run --rm $TTY_FLAG gogrepo $LGOG_COMMAND 2>&1 | tee -a "$log_file"
+
+# Always process output to log 'Repairing file' lines
+process_and_log() {
+    while IFS= read -r line; do
+        if [[ "$line" == *"Repairing file"* ]]; then
+            echo "$line" | tee -a "$log_file"
+        else
+            echo "$line" | tee -a "$log_file"
+        fi
+    done | awk '!a[$0]++'
+}
+
+if [[ "$LGOG_COMMAND" == *"--list"* ]]; then
+    docker-compose run --rm $TTY_FLAG gogrepo $LGOG_COMMAND 2>&1 | process_and_log
 elif [ "$SHOW_ALL_OUTPUT" = true ]; then
-    docker-compose run --rm $TTY_FLAG gogrepo $LGOG_COMMAND 2>&1 | tee -a "$log_file"
+    docker-compose run --rm $TTY_FLAG gogrepo $LGOG_COMMAND 2>&1 | process_and_log
 elif [ "$VERBOSE_LOG" = true ]; then
-    # Only output errors, warnings, and the final summary (not per-file or progress lines)
     last_summary=""
     docker-compose run --rm $TTY_FLAG gogrepo $LGOG_COMMAND 2>&1 \
         | sed -r 's/[^\x09\x0A\x0D\x20-\x7E]//g' \
+        | awk '!a[$0]++' \
         | while IFS= read -r line; do
-            if [[ "$line" =~ ^(Total:|Remaining:) ]]; then
+            if [[ "$line" == *"Repairing file"* ]]; then
+                echo "$line" | tee -a "$log_file"
+            elif [[ "$line" =~ ^(Total:|Remaining:) ]]; then
                 last_summary="$line"
             elif [[ "$line" =~ (ERROR|WARNING|Run completed|====) ]] && [[ -n "${line// }" ]]; then
                 echo "$line" | tee -a "$log_file"
@@ -119,7 +133,9 @@ elif [ "$VERBOSE_LOG" = true ]; then
         echo "$last_summary" | tee -a "$log_file"
     fi
 else
-    docker-compose run --rm $TTY_FLAG gogrepo $LGOG_COMMAND 2>&1 | grep -iE "WARNING|ERROR" | tee -a "$log_file" | awk 'NR % 1000 == 0 { printf "."; fflush() }'
+    docker-compose run --rm $TTY_FLAG gogrepo $LGOG_COMMAND 2>&1 \
+        | awk '!a[$0]++ {if (index($0, "Repairing file")) {print $0; fflush();} else if (tolower($0) ~ /warning|error/) {print $0 > "/dev/stderr"; print $0; fflush();}}' \
+        | tee -a "$log_file" | awk 'NR % 1000 == 0 { printf "."; fflush() }'
 fi
 
 end_time=$(date +%s)

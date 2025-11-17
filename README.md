@@ -88,11 +88,11 @@ Run from the project directory:
 
 # Download only updated games (recommended for regular syncs)
 ./gog-sync.ps1 -Download
-#   → Only downloads updates for games that need them (fast, targeted)
+#   → Only downloads updates for games that are already downloaded need them (fast, targeted)
 
 # Download ALL games and components (complete archive)
 ./gog-sync.ps1 -DownloadAll
-#   → Downloads everything in your GOG library (slow, full backup)
+#   → Downloads everything in your GOG library including new games (slow, full backup)
 
 # Repair/verify all downloaded files (checks integrity, redownloads if needed)
 ./gog-sync.ps1 -Repair
@@ -126,11 +126,11 @@ Run from the project directory:
 
 # Download only updated games (recommended for regular syncs)
 ./gog-sync.sh --download
-#   → Only downloads updates for games that need them (fast, targeted)
+#   → Only downloads updates for games that are already downloaded need them (fast, targeted)
 
 # Download ALL games and components (complete archive)
 ./gog-sync.sh --download-all
-#   → Downloads everything in your GOG library (slow, full backup)
+#   → Downloads everything in your GOG library including new games (slow, full backup)
 
 # Repair/verify all downloaded files (checks integrity, redownloads if needed)
 ./gog-sync.sh --repair

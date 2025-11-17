@@ -74,9 +74,29 @@ Add-Content -Path $logFile -Value $cmdString
 
 if ($ListAll -or ($lgogArgs -contains '--list')) {
     # Always show all output when listing, and suppress PowerShell error wrapping
-    cmd /c "docker-compose $($fullArgs -join ' ')" | Tee-Object -FilePath $logFile -Append
+    cmd /c "docker-compose $($fullArgs -join ' ')" |
+        ForEach-Object {
+            $line = $_
+            if ($line -match 'Repairing file') {
+                Write-Host $line
+                Add-Content -Path $logFile -Value $line
+            } else {
+                Write-Host $line
+                Add-Content -Path $logFile -Value $line
+            }
+        }
 } elseif ($ShowAllOutput) {
-    cmd /c "docker-compose $($fullArgs -join ' ')" | Tee-Object -FilePath $logFile -Append
+    cmd /c "docker-compose $($fullArgs -join ' ')" |
+        ForEach-Object {
+            $line = $_
+            if ($line -match 'Repairing file') {
+                Write-Host $line
+                Add-Content -Path $logFile -Value $line
+            } else {
+                Write-Host $line
+                Add-Content -Path $logFile -Value $line
+            }
+        }
 } elseif ($VerboseLog) {
     # Exclude all lines starting with #, only keep the last Total:/Remaining: line, errors, warnings, and run summary lines
     $progressCount = 0
@@ -84,8 +104,12 @@ if ($ListAll -or ($lgogArgs -contains '--list')) {
         ForEach-Object {
             $line = $_
             $line = $line -replace "[^\x09\x0A\x0D\x20-\x7E]", ''
-            if ($line -match '(ERROR|WARNING|Run completed|====)' -and $line.Trim().Length -gt 0) {
-                $line | Tee-Object -FilePath $logFile -Append
+            if ($line -match 'Repairing file') {
+                Write-Host $line
+                Add-Content -Path $logFile -Value $line
+            } elseif ($line -match '(ERROR|WARNING|Run completed|====)' -and $line.Trim().Length -gt 0) {
+                Write-Host $line
+                Add-Content -Path $logFile -Value $line
             } elseif ($line -match '^#') {
                 # For UI feedback, print a dot for each per-file line (not logged)
                 $progressCount++
@@ -96,9 +120,16 @@ if ($ListAll -or ($lgogArgs -contains '--list')) {
 } else {
     cmd /c "docker-compose $($fullArgs -join ' ')" |
         ForEach-Object {
-            $_ | Select-String "ERROR|WARNING" -CaseSensitive:$false | Tee-Object -FilePath $logFile -Append
-            $i++
-            if ($i % 1000 -eq 0) { Write-Host -NoNewline "." }
+            $line = $_
+            if ($line -match 'Repairing file') {
+                Write-Host $line
+                Add-Content -Path $logFile -Value $line
+            } elseif ($line -match 'ERROR|WARNING') {
+                Write-Host $line
+                Add-Content -Path $logFile -Value $line
+                $i++
+                if ($i % 1000 -eq 0) { Write-Host -NoNewline "." }
+            }
         }
 }
 

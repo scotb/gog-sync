@@ -1,0 +1,38 @@
+name: GOG Sync CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-powershell:
+    runs-on: ubuntu-latest
+    name: Test PowerShell Script
+    env:
+      GOG_USERNAME: ${{ secrets.GOG_USERNAME }}
+      GOG_PASSWORD: ${{ secrets.GOG_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build Docker image
+        run: docker-compose build
+      - name: Test login and list (PowerShell)
+        run: |
+          docker-compose run --rm -e GOG_USERNAME -e GOG_PASSWORD gogrepo lgogdownloader --list --login --username "$GOG_USERNAME" --password "$GOG_PASSWORD"
+
+  test-bash:
+    runs-on: ubuntu-latest
+    name: Test Bash Script
+    env:
+      GOG_USERNAME: ${{ secrets.GOG_USERNAME }}
+      GOG_PASSWORD: ${{ secrets.GOG_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build Docker image
+        run: docker-compose build
+      - name: Test login and list (Bash)
+        run: |
+          docker-compose run --rm -e GOG_USERNAME -e GOG_PASSWORD gogrepo lgogdownloader --list --login --username "$GOG_USERNAME" --password "$GOG_PASSWORD"
